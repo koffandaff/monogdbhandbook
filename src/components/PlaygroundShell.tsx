@@ -50,7 +50,10 @@ export default function PlaygroundShell() {
   const [db] = useState(() => new MockDB());
   const [tabs, setTabs] = useState<TabItem[]>([{ ...newTab("mongosh"), lines: [...INIT_LINES] }]);
   const [activeTabId, setActiveTabId] = useState(tabs[0].id);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    if (typeof window !== "undefined") return window.innerWidth >= 768;
+    return true;
+  });
   const [sidebarTab, setSidebarTab] = useState<"explorer" | "history" | "help">("explorer");
   const [expandedDbs, setExpandedDbs] = useState<Set<string>>(new Set());
   const [expandedColls, setExpandedColls] = useState<Set<string>>(new Set());
@@ -332,18 +335,18 @@ export default function PlaygroundShell() {
           </button>
         </div>
 
-        <div className="flex items-center gap-1 px-2">
+        <div className="flex items-center gap-1 px-1 md:px-2">
           <button onClick={() => setShowLearning(!showLearning)}
-            className={`px-2 py-1 rounded text-[11px] font-medium transition-all flex items-center gap-1 ${
+            className={`px-1.5 md:px-2 py-1 rounded text-[11px] font-medium transition-all flex items-center gap-1 ${
               showLearning ? "bg-white/[0.08] text-white" : "text-[#5a5a5a] hover:text-white"
             }`}>
             <Lightbulb size={12} />
-            Learn
+            <span className="hidden md:inline">Learn</span>
           </button>
           <button onClick={() => setShowQueryBuilder(true)}
-            className="px-2 py-1 rounded text-[11px] font-medium text-[#5a5a5a] hover:text-white hover:bg-white/[0.04] transition-all flex items-center gap-1">
+            className="px-1.5 md:px-2 py-1 rounded text-[11px] font-medium text-[#5a5a5a] hover:text-white hover:bg-white/[0.04] transition-all flex items-center gap-1">
             <Filter size={12} />
-            Builder
+            <span className="hidden md:inline">Builder</span>
           </button>
         </div>
       </div>
@@ -351,7 +354,10 @@ export default function PlaygroundShell() {
       <div className="flex flex-1 min-h-0">
         {/* Sidebar */}
         {sidebarOpen && (
-          <div className="w-[240px] shrink-0 border-r border-[rgba(255,255,255,0.06)] bg-[#0a0a0a] flex flex-col">
+          <>
+            {/* Mobile overlay backdrop */}
+            <div className="md:hidden fixed inset-0 z-40 bg-black/60" onClick={() => setSidebarOpen(false)} />
+            <div className="fixed md:static inset-y-0 left-0 z-50 w-[260px] md:w-[240px] shrink-0 border-r border-[rgba(255,255,255,0.06)] bg-[#0a0a0a] flex flex-col md:flex">
             {/* Sidebar tabs */}
             <div className="flex border-b border-[rgba(255,255,255,0.06)]">
               {[
@@ -500,12 +506,13 @@ export default function PlaygroundShell() {
               Connected — {db.activeDb}
             </div>
           </div>
+        </>
         )}
 
         {/* Main Workspace */}
         <div className="flex-1 flex flex-col min-h-0 min-w-0">
           {/* Output */}
-          <div ref={outputRef} className="flex-1 overflow-y-auto p-4 space-y-0.5 scrollbar-thin bg-[#080808]">
+          <div ref={outputRef} className="flex-1 overflow-y-auto p-2 md:p-4 space-y-0.5 scrollbar-thin bg-[#080808]">
             {activeTab.lines.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center text-xs text-[#5a5a5a] gap-2">
                 <Terminal size={32} className="opacity-30" />
@@ -517,17 +524,17 @@ export default function PlaygroundShell() {
           </div>
 
           {/* Input area */}
-          <div className="px-4 py-3 border-t border-[rgba(255,255,255,0.06)] bg-[#0a0a0a] relative">
+          <div className="px-2 md:px-4 py-2 md:py-3 border-t border-[rgba(255,255,255,0.06)] bg-[#0a0a0a] relative">
             {showAutocomplete && autoSuggestions.length > 0 && (
               <div ref={autoRef}
-                className="absolute bottom-full left-4 right-4 mb-1 max-h-[280px] overflow-y-auto rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111] shadow-2xl z-50">
+                className="absolute bottom-full left-2 md:left-4 right-2 md:right-4 mb-1 max-h-[200px] md:max-h-[280px] overflow-y-auto rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111] shadow-2xl z-50">
                 {autoSuggestions.map((s, i) => (
                   <button key={i} onClick={() => { updateTab((t) => ({ ...t, input: s.text })); setShowAutocomplete(false); inputRef.current?.focus(); }}
                     onMouseEnter={() => setAutoCompleteIdx(i)}
                     className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left transition-all ${
                       i === autoCompleteIdx ? "bg-white/[0.08] text-white" : "text-[#8a8a8a] hover:bg-white/[0.04]"
                     }`}>
-                    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded shrink-0 ${
+                    <span className={`text-[9px] md:text-[10px] font-medium px-1 md:px-1.5 py-0.5 rounded shrink-0 ${
                       s.category === "Database" ? "bg-blue-500/10 text-blue-400" :
                       s.category === "CRUD" ? "bg-green-500/10 text-green-400" :
                       s.category === "Aggregation" ? "bg-amber-500/10 text-amber-400" :
@@ -535,8 +542,8 @@ export default function PlaygroundShell() {
                       s.category === "Cursor" ? "bg-cyan-500/10 text-cyan-400" :
                       "bg-white/[0.06] text-white"
                     }`}>{s.category}</span>
-                    <code className="font-mono text-white">{s.text}</code>
-                    <span className="ml-auto text-[#5a5a5a]">{s.description}</span>
+                    <code className="font-mono text-white text-[11px] md:text-xs">{s.text}</code>
+                    <span className="ml-auto text-[#5a5a5a] hidden md:block">{s.description}</span>
                   </button>
                 ))}
               </div>

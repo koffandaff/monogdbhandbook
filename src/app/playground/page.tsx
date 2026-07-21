@@ -18,21 +18,21 @@ export default function PlaygroundPage() {
             </div>
           </div>
         </div>
-        <div className="flex items-start gap-3 p-4 rounded-lg bg-white/[0.08] border border-white/[0.15] mt-4">
-          <Info size={16} className="text-white shrink-0 mt-0.5" />
-          <div className="text-sm text-[#8a8a8a]">
-            <p className="mb-1.5 text-white font-medium">Get started quickly:</p>
-            <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs font-mono">
+        <div className="flex items-start gap-3 p-3 md:p-4 rounded-lg bg-white/[0.08] border border-white/[0.15] mt-4">
+          <Info size={16} className="text-white shrink-0 mt-0.5 hidden md:block" />
+          <div className="text-sm text-[#8a8a8a] min-w-0">
+            <p className="mb-1.5 text-white font-medium text-xs md:text-sm">Get started quickly:</p>
+            <div className="flex flex-wrap gap-x-3 md:gap-x-5 gap-y-1 text-xs font-mono">
               <span className="text-white">help</span>
               <span className="text-white">seed students</span>
               <span className="text-white">seed ecommerce</span>
-              <span className="text-white">db.students.find({'{age:{$gt:19}}'})</span>
+              <span className="text-white truncate max-w-[180px] md:max-w-none">db.students.find({'{age:{$gt:19}}'})</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="h-[calc(100vh-16rem)]">
+      <div className="h-[calc(100vh-14rem)] md:h-[calc(100vh-16rem)]">
         <PlaygroundShell />
       </div>
     </div>
