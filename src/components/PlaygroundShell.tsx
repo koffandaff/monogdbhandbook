@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import {
   Play, Database, Table, Terminal, Server, Plus, FileJson,
   ChevronDown, ChevronRight, X, Lightbulb, Copy,

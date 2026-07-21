@@ -1,10 +1,10 @@
 "use client";
 
-import { BookOpen, Terminal, Database, BarChart3, Search, Zap, Server, Shield, Globe, CheckCircle2, Clock } from "lucide-react";
+import { BookOpen, Terminal, Database, BarChart3, Search, Zap, Server, Shield, Globe, CheckCircle2, Clock, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { topicChapters } from "@/data/notes";
 
-const iconMap: Record<string, React.ComponentType<{ size?: number }>> = { Terminal, Database, BarChart3, Search, Zap, Server, Shield, Globe };
+const iconMap: Record<string, LucideIcon> = { Terminal, Database, BarChart3, Search, Zap, Server, Shield, Globe };
 
 export default function NotesPage() {
   return (

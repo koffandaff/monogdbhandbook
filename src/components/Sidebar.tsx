@@ -6,10 +6,25 @@ import { usePathname } from "next/navigation";
 import {
   Home, BookOpen, BrainCircuit, Database, Terminal, BarChart3,
   Search, Zap, Server, Shield, Globe, ChevronDown, GraduationCap,
-  PlayCircle, Menu, X, Bookmark, Clock, Download, TrendingUp, Settings
+  PlayCircle, Menu, X, Bookmark, Clock, Download, TrendingUp, Settings,
+  type LucideIcon,
 } from "lucide-react";
 
-const sections = [
+interface NavItemBase {
+  icon: LucideIcon;
+  label: string;
+  href: string;
+}
+interface NavItemWithChildren extends NavItemBase {
+  children: { icon: LucideIcon; label: string; href: string }[];
+}
+interface NavItemDisabled extends NavItemBase {
+  disabled: true;
+}
+type NavItem = NavItemBase | NavItemWithChildren | NavItemDisabled;
+interface Section { label: string; items: NavItem[]; }
+
+const sections: Section[] = [
   {
     label: "DATABASE", items: [
       { icon: Home, label: "Dashboard", href: "/" },
@@ -61,7 +76,7 @@ export default function Sidebar() {
   useEffect(() => { document.body.style.overflow = mobile ? "hidden" : ""; return () => { document.body.style.overflow = ""; }; }, [mobile]);
 
   const active = (h: string) => pathname === h;
-  const parentActive = (h: string, c?: { href: string }[]) => active(h) || (c?.some(x => active(x.href)));
+  const parentActive = (h: string, c?: { href: string }[]): boolean => active(h) || (c?.some(x => active(x.href)) ?? false);
 
   return (
     <>
@@ -102,9 +117,9 @@ export default function Sidebar() {
 }
 
 interface SidebarInnerProps {
-  sections: typeof sections;
+  sections: Section[];
   open: string[];
-  setOpen: (v: string[]) => void;
+  setOpen: React.Dispatch<React.SetStateAction<string[]>>;
   active: (h: string) => boolean;
   parentActive: (h: string, c?: { href: string }[]) => boolean;
   mobile: boolean;
@@ -133,11 +148,11 @@ function SidebarInner({ sections, open, setOpen, active, parentActive, mobile, s
             <div className="space-y-0.5">
               {section.items.map((item) => {
                 const Icon = item.icon;
-                const hasChildren = item.children?.length > 0;
+                const hasChildren = "children" in item && item.children.length > 0;
                 const sectionKey = section.label.toLowerCase();
                 const expanded = open.includes(sectionKey);
 
-                if (item.disabled) {
+                if ("disabled" in item && item.disabled) {
                   return (
                     <div key={item.label}
                       className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-[#5a5a5a] cursor-not-allowed">
@@ -148,30 +163,32 @@ function SidebarInner({ sections, open, setOpen, active, parentActive, mobile, s
                   );
                 }
 
+                if (hasChildren) {
+                  const itemWithChildren = item as NavItemWithChildren;
+                  return (
+                    <div key={item.label}>
+                      <button onClick={() => setOpen((prev: string[]) => prev.includes(sectionKey) ? prev.filter((l: string) => l !== sectionKey) : [...prev, sectionKey])}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all ${
+                          parentActive(itemWithChildren.href, itemWithChildren.children) ? "text-white bg-white/[0.08] font-medium" : "text-[#8a8a8a] hover:text-white hover:bg-white/[0.06]"
+                        }`}>
+                        <Icon size={16} className={parentActive(itemWithChildren.href, itemWithChildren.children) ? "text-white" : "text-[#5a5a5a]"} />
+                        <span className="flex-1 text-left">{itemWithChildren.label}</span>
+                        <ChevronDown size={13}
+                          className={`text-[#5a5a5a] transition-transform duration-200 ${expanded ? "" : "-rotate-90"}`} />
+                      </button>
+                      {expanded && (
+                        <div className="mt-0.5 space-y-0.5 pl-6">
+                          {itemWithChildren.children.map((child) => (
+                            <NavItem key={child.href} href={child.href} icon={child.icon} label={child.label} active={active} mobile={mobile} setMobile={setMobile} />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
                 return (
                   <div key={item.label}>
-                    {hasChildren ? (
-                      <>
-                        <button onClick={() => setOpen((prev: string[]) => prev.includes(sectionKey) ? prev.filter((l: string) => l !== sectionKey) : [...prev, sectionKey])}
-                          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all ${
-                            parentActive(item.href, item.children) ? "text-white bg-white/[0.08] font-medium" : "text-[#8a8a8a] hover:text-white hover:bg-white/[0.06]"
-                          }`}>
-                          <Icon size={16} className={parentActive(item.href, item.children) ? "text-white" : "text-[#5a5a5a]"} />
-                          <span className="flex-1 text-left">{item.label}</span>
-                          <ChevronDown size={13}
-                            className={`text-[#5a5a5a] transition-transform duration-200 ${expanded ? "" : "-rotate-90"}`} />
-                        </button>
-                        {expanded && (
-                          <div className="mt-0.5 space-y-0.5 pl-6">
-                            {item.children.map((child) => (
-                              <NavItem key={child.href} href={child.href} icon={child.icon} label={child.label} active={active} mobile={mobile} setMobile={setMobile} />
-                            ))}
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <NavItem href={item.href} icon={Icon} label={item.label} active={active} mobile={mobile} setMobile={setMobile} />
-                    )}
+                    <NavItem href={item.href} icon={Icon} label={item.label} active={active} mobile={mobile} setMobile={setMobile} />
                   </div>
                 );
               })}
@@ -197,7 +214,7 @@ function SidebarInner({ sections, open, setOpen, active, parentActive, mobile, s
 
 interface NavItemProps {
   href: string;
-  icon: React.ComponentType<{ size?: number }>;
+  icon: LucideIcon;
   label: string;
   active: (h: string) => boolean;
   mobile: boolean;
